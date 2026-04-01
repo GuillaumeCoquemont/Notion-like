@@ -11,6 +11,7 @@ import { create } from "zustand";
 
         createDocument: () => void;
         setActiveDocument: (id: string) => void;
+        updateDocumentTitle: (id: string, title: string) => void;
     }
 
     export const useAppStore = create<AppState>((set) => {
@@ -40,5 +41,12 @@ import { create } from "zustand";
                 set({
                     activeDocumentId: id,
             }),
-        };
+
+            updateDocumentTitle: (id, title) => 
+                set((state) => ({
+                    documents: state.documents.map((doc) =>
+                        doc.id === id ? { ...doc,title } : doc
+                ),
+            })),
+        }
     });

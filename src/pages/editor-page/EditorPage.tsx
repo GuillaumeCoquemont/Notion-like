@@ -1,7 +1,9 @@
 import { useAppStore } from "../../app/store/useAppStore";
 
 export default function EditorPage() {
-  const { documents, activeDocumentId, createDocument, setActiveDocument } = useAppStore();
+  const { documents, activeDocumentId, createDocument, setActiveDocument, updateDocumentTitle } = useAppStore();
+
+  const activeDocument = documents.find((doc) => doc.id === activeDocumentId);
 
     return (
       <div className="flex h-screen bg-white text-black">
@@ -28,16 +30,32 @@ export default function EditorPage() {
               </button>
             ))}
           </div>
+
         </aside>
 
         <main className="flex-1 p-8">
-          <div className="mx-auto max-w-3xl">
-            <h1 className="text-3xl font-bold">Editor</h1>
-            <p className="mt-2 text-neutral-600">
-              Page active : {activeDocumentId}
-            </p>
-          </div>
-        </main>
+        <div className="mx-auto max-w-3xl">
+          {activeDocument ? (
+            <>
+              <input
+                type="text"
+                value={activeDocument.title}
+                onChange={(event) =>
+                  updateDocumentTitle(activeDocument.id, event.target.value)
+                }
+                className="w-full border-none bg-transparent text-4xl font-bold outline-none"
+                placeholder="Titre de la page"
+              />
+
+              <p className="mt-3 text-neutral-600">
+                Le contenu du document arrivera ici.
+              </p>
+            </>
+          ) : (
+            <p className="text-neutral-600">Aucun document sélectionné.</p>
+          )}
+        </div>
+      </main>
       </div>
     );
   }
