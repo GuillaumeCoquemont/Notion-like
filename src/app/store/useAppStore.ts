@@ -20,6 +20,7 @@ import { create } from "zustand";
         updateDocumentTitle: (id: string, title: string) => void;
         addBlock: (docId: string) => void;
         updateBlock: (docId: string, blockId: string, content: string) => void;
+        deleteBlock: (docId: string, blockId: string) => void;
     }
 
     function createEmptyBlock(): Block {
@@ -45,8 +46,8 @@ import { create } from "zustand";
             activeDocumentId: firstDoc.id,
 
             createDocument: () =>
-            set((state) => {
-                const newDoc = createNewDocument();
+                set((state) => {
+                    const newDoc = createNewDocument();
                 
 
                 return {
@@ -79,6 +80,25 @@ import { create } from "zustand";
                     documents: state.documents.map((doc) =>
                         doc.id === docId ? { ...doc, blocks: doc.blocks.map((block) => block.id === blockId ? { ...block, content } : block) } : doc
                     ),
+                })),
+
+            deleteBlock: (docId, blockId) =>
+                set((state) => ({
+                    documents: state.documents.map((doc) => {
+                        if (doc.id !== docId) return doc;
+
+                        const updatedBlocks = doc.blocks.filter(
+                            (block) => block.id !== blockId
+                        );
+
+                        return {
+                            ...doc,
+                            blocks:
+                                updatedBlocks.length > 0
+                                    ? updatedBlocks
+                                    : [createEmptyBlock()],
+                        };
+                    }),
                 })),
         };
     });

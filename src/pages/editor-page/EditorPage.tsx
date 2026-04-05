@@ -10,6 +10,7 @@ export default function EditorPage() {
     updateDocumentTitle,
     addBlock,
     updateBlock,
+    deleteBlock,
   } = useAppStore();
 
   const activeDocument = documents.find((doc) => doc.id === activeDocumentId);
@@ -17,7 +18,7 @@ export default function EditorPage() {
   const inputRefs = useRef<Record<string, HTMLInputElement | null>>({});
 
   useEffect(() => {
-    if (!activeDocument) return;
+    if (!activeDocument || activeDocument.blocks.length === 0) return;
 
       const lastBlock =
         activeDocument.blocks[activeDocument.blocks.length - 1];
@@ -95,6 +96,25 @@ export default function EditorPage() {
                       if (event.key === "Enter") {
                         event.preventDefault();
                         addBlock(activeDocument.id);
+                      }
+
+                      if (event.key === "Backspace" && block.content === "") {
+                        event.preventDefault();
+
+                        const currentIndex = activeDocument.blocks.findIndex(
+                          (b) => b.id === block.id
+                        );
+
+                        if (currentIndex > 0) {
+                          const previousBlock = activeDocument.blocks[currentIndex - 1];
+
+                          deleteBlock(activeDocument.id, block.id);
+
+                          setTimeout(() => {
+                            const previousInputRef = inputRefs.current[previousBlock.id];
+                            previousInputRef?.focus();
+                          }, 0);
+                        }
                       }
                     }}
                     ref={(el) => {
