@@ -1,4 +1,5 @@
 import { useAppStore } from "../../app/store/useAppStore";
+import { useEffect, useRef } from "react";
 
 export default function EditorPage() {
   const {
@@ -12,6 +13,21 @@ export default function EditorPage() {
   } = useAppStore();
 
   const activeDocument = documents.find((doc) => doc.id === activeDocumentId);
+
+  const inputRefs = useRef<Record<string, HTMLInputElement | null>>({});
+
+  useEffect(() => {
+    if (!activeDocument) return;
+
+      const lastBlock =
+        activeDocument.blocks[activeDocument.blocks.length - 1];
+
+      const lastBlockInputRef = inputRefs.current[lastBlock.id];
+
+    if (lastBlockInputRef) {
+      lastBlockInputRef.focus();
+    }
+  }, [activeDocument?.blocks.length]);
 
   return (
     <div className="flex h-screen bg-white text-black">
@@ -80,6 +96,9 @@ export default function EditorPage() {
                         event.preventDefault();
                         addBlock(activeDocument.id);
                       }
+                    }}
+                    ref={(el) => {
+                      inputRefs.current[block.id] = el;
                     }}
                     className="w-full border-none bg-transparent py-1 outline-none"
                     placeholder="Tapez '/' pour les commandes"
