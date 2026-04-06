@@ -25,8 +25,8 @@ export default function EditorPage() {
 
       const lastBlockInputRef = inputRefs.current[lastBlock.id];
 
-    if (lastBlockInputRef) {
-      lastBlockInputRef.focus();
+      if (lastBlockInputRef) {
+        lastBlockInputRef.focus();
     }
   }, [activeDocument?.blocks.length]);
 
@@ -93,6 +93,7 @@ export default function EditorPage() {
                       )
                     }
                     onKeyDown={(event) => {
+
                       if (event.key === "Enter") {
                         event.preventDefault();
                         addBlock(activeDocument.id);
@@ -116,6 +117,33 @@ export default function EditorPage() {
                           }, 0);
                         }
                       }
+
+                      if (event.key === "ArrowUp") {
+                        event.preventDefault();
+                        const currentIndex = activeDocument.blocks.findIndex(
+                          (b) => b.id === block.id
+                        );
+
+                        if (currentIndex > 0) {
+                          const previousBlock = activeDocument.blocks[currentIndex - 1];
+                          const previousInputRef = inputRefs.current[previousBlock.id];
+                          previousInputRef?.focus();
+                        }
+                      }
+
+                      if (event.key === "ArrowDown") {
+                        event.preventDefault();
+                        const currentIndex = activeDocument.blocks.findIndex(
+                          (b) => b.id === block.id
+                        );
+
+                        if (currentIndex < activeDocument.blocks.length - 1) {
+                          const nextBlock = activeDocument.blocks[currentIndex + 1];
+                          const nextInputRef = inputRefs.current[nextBlock.id];
+                          nextInputRef?.focus();
+                        }
+                      }
+
                     }}
                     ref={(el) => {
                       inputRefs.current[block.id] = el;
