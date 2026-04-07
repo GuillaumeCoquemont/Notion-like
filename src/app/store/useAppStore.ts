@@ -1,8 +1,10 @@
 import { create } from "zustand";
 
+export type BlockType = "text" | "heading";
     export interface Block {
         id: string;
         content: string;
+        type: BlockType;
     }
 
     export interface DocumentItem {
@@ -21,12 +23,14 @@ import { create } from "zustand";
         addBlock: (docId: string) => void;
         updateBlock: (docId: string, blockId: string, content: string) => void;
         deleteBlock: (docId: string, blockId: string) => void;
+        setBlockType: (docId: string, blockId: string, type: BlockType) => void;
     }
 
     function createEmptyBlock(): Block {
         return {
             id: crypto.randomUUID(),
             content: "",
+            type: "text",
         };
     }
 
@@ -99,6 +103,13 @@ import { create } from "zustand";
                                     : [createEmptyBlock()],
                         };
                     }),
+                })),
+                
+            setBlockType: (docId, blockId, type) =>
+                set((state) => ({
+                    documents: state.documents.map((doc) =>
+                        doc.id === docId ? { ...doc, blocks: doc.blocks.map((block) => block.id === blockId ? { ...block, type } : block) } : doc
+                    ),
                 })),
         };
     });

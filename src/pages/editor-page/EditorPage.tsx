@@ -1,5 +1,5 @@
 import { useAppStore } from "../../app/store/useAppStore";
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 
 export default function EditorPage() {
   const {
@@ -16,6 +16,10 @@ export default function EditorPage() {
   const activeDocument = documents.find((doc) => doc.id === activeDocumentId);
 
   const inputRefs = useRef<Record<string, HTMLInputElement | null>>({});
+
+  const [slashMenu, setSlashMenu] = useState<{
+    blockId: string;
+  } | null>(null);
 
   useEffect(() => {
     if (!activeDocument || activeDocument.blocks.length === 0) return;
@@ -81,76 +85,96 @@ export default function EditorPage() {
 
               <div className="mt-6 space-y-2">
                 {activeDocument.blocks.map((block) => (
-                  <input
-                    key={block.id}
-                    type="text"
-                    value={block.content}
-                    onChange={(event) =>
-                      updateBlock(
-                        activeDocument.id,
-                        block.id,
-                        event.target.value
-                      )
-                    }
-                    onKeyDown={(event) => {
+                  <div key={block.id}>
+                    <input
+                      type="text"
+                      value={block.content}
+                      onChange={(event) => {
+                        const value = event.target.value;
 
-                      if (event.key === "Enter") {
-                        event.preventDefault();
-                        addBlock(activeDocument.id);
-                      }
+                        updateBlock(activeDocument.id, block.id, value);
 
-                      if (event.key === "Backspace" && block.content === "") {
-                        event.preventDefault();
+                        if (value === "/") {
+                          setSlashMenu({ blockId: block.id });
+                        } else {
+                          setSlashMenu(null);
+                        }
+                      }}
+                      onKeyDown={(event) => {
+                        if (event.key === "Enter") {
+                          event.preventDefault();
+                          addBlock(activeDocument.id);
+                        }
 
-                        const currentIndex = activeDocument.blocks.findIndex(
-                          (b) => b.id === block.id
-                        );
+                        if (event.key === "Backspace" && block.content === "") {
+                          event.preventDefault();
 
-                        if (currentIndex > 0) {
-                          const previousBlock = activeDocument.blocks[currentIndex - 1];
+                          const currentIndex = activeDocument.blocks.findIndex(
+                            (b) => b.id === block.id
+                          );
 
-                          deleteBlock(activeDocument.id, block.id);
+                          if (currentIndex > 0) {
+                            const previousBlock = activeDocument.blocks[currentIndex - 1];
 
-                          setTimeout(() => {
+                            deleteBlock(activeDocument.id, block.id);
+
+                            setTimeout(() => {
+                              const previousInputRef = inputRefs.current[previousBlock.id];
+                              previousInputRef?.focus();
+                            }, 0);
+                          }
+                        }
+
+                        if (event.key === "ArrowUp") {
+                          event.preventDefault();
+                          const currentIndex = activeDocument.blocks.findIndex(
+                            (b) => b.id === block.id
+                          );
+
+                          if (currentIndex > 0) {
+                            const previousBlock = activeDocument.blocks[currentIndex - 1];
                             const previousInputRef = inputRefs.current[previousBlock.id];
                             previousInputRef?.focus();
-                          }, 0);
+                          }
                         }
-                      }
 
-                      if (event.key === "ArrowUp") {
-                        event.preventDefault();
-                        const currentIndex = activeDocument.blocks.findIndex(
-                          (b) => b.id === block.id
-                        );
+                        if (event.key === "ArrowDown") {
+                          event.preventDefault();
+                          const currentIndex = activeDocument.blocks.findIndex(
+                            (b) => b.id === block.id
+                          );
 
-                        if (currentIndex > 0) {
-                          const previousBlock = activeDocument.blocks[currentIndex - 1];
-                          const previousInputRef = inputRefs.current[previousBlock.id];
-                          previousInputRef?.focus();
+                          if (currentIndex < activeDocument.blocks.length - 1) {
+                            const nextBlock = activeDocument.blocks[currentIndex + 1];
+                            const nextInputRef = inputRefs.current[nextBlock.id];
+                            nextInputRef?.focus();
+                          }
                         }
-                      }
+                      }}
+                      ref={(el) => {
+                        inputRefs.current[block.id] = el;
+                      }}
+                      className="w-full border-none bg-transparent py-1 outline-none"
+                      placeholder="Tapez '/' pour les commandes"
+                    />
 
-                      if (event.key === "ArrowDown") {
-                        event.preventDefault();
-                        const currentIndex = activeDocument.blocks.findIndex(
-                          (b) => b.id === block.id
-                        );
-
-                        if (currentIndex < activeDocument.blocks.length - 1) {
-                          const nextBlock = activeDocument.blocks[currentIndex + 1];
-                          const nextInputRef = inputRefs.current[nextBlock.id];
-                          nextInputRef?.focus();
-                        }
-                      }
-
-                    }}
-                    ref={(el) => {
-                      inputRefs.current[block.id] = el;
-                    }}
-                    className="w-full border-none bg-transparent py-1 outline-none"
-                    placeholder="Tapez '/' pour les commandes"
-                  />
+                    {slashMenu?.blockId === block.id && (
+                      <div className="mt-2 rounded border bg-white p-2 shadow">
+                        <button
+                          type="button"
+                          className="block w-full p-1 text-left hover:bg-gray-100"
+                        >
+                          Texte
+                        </button>
+                        <button
+                          type="button"
+                          className="block w-full p-1 text-left hover:bg-gray-100"
+                        >
+                          Titre
+                        </button>
+                      </div>
+                    )}
+                  </div>
                 ))}
               </div>
             </>
