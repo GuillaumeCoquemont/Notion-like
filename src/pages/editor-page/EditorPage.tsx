@@ -2,6 +2,7 @@ import { useAppStore } from "../../app/store/useAppStore";
 import { useEffect, useRef, useState } from "react";
 
 export default function EditorPage() {
+  // Global store: data and actions for documents and blocks
   const {
     documents,
     createDocument,
@@ -14,14 +15,25 @@ export default function EditorPage() {
     setBlockType,
   } = useAppStore();
 
+  // Currently selected document
   const activeDocument = documents.find((doc) => doc.id === activeDocumentId);
 
+  // References to block inputs for focus management
   const inputRefs = useRef<Record<string, HTMLInputElement | null>>({});
 
+  // Local UI state for the slash menu
   const [slashMenu, setSlashMenu] = useState<{
     blockId: string;
+    selectedIndex: number;
   } | null>(null);
+  
+  // Available options shown in the slash menu
+  const slashMenuOptions = [
+    { label: "Texte", type: "text" as const },
+    { label: "Titre", type: "heading" as const },
+  ];
 
+  // Auto-focus the last block when a new one is created
   useEffect(() => {
     if (!activeDocument || activeDocument.blocks.length === 0) return;
 
@@ -37,6 +49,7 @@ export default function EditorPage() {
 
   return (
     <div className="flex h-screen bg-white text-black">
+      {/* Sidebar: documents list and creation */}
       <aside className="w-64 border-r border-neutral-200 bg-neutral-100 p-4">
         <div className="flex items-center justify-between">
           <h2 className="text-sm font-semibold uppercase tracking-wide text-neutral-600">
@@ -70,10 +83,12 @@ export default function EditorPage() {
         </div>
       </aside>
 
+      {/* Editor area: title, blocks and slash menu */}
       <main className="flex-1 overflow-y-auto p-8">
         <div className="mx-auto max-w-3xl">
           {activeDocument ? (
             <>
+              {/* Document title */}
               <input
                 type="text"
                 value={activeDocument.title}
@@ -84,9 +99,11 @@ export default function EditorPage() {
                 placeholder="Titre de la page"
               />
 
+              {/* Document blocks */}
               <div className="mt-6 space-y-2">
                 {activeDocument.blocks.map((block) => (
                   <div key={block.id}>
+                    {/* Block input */}
                     <input
                       type="text"
                       value={block.content}
@@ -96,17 +113,74 @@ export default function EditorPage() {
                         updateBlock(activeDocument.id, block.id, value);
 
                         if (value === "/") {
-                          setSlashMenu({ blockId: block.id });
+                          setSlashMenu({ blockId: block.id, selectedIndex: 0 });
                         } else {
                           setSlashMenu(null);
                         }
                       }}
+
                       onKeyDown={(event) => {
+                        // Slash menu keyboard navigation has priority
+                        if (slashMenu?.blockId === block.id) {
+                          if (event.key === "ArrowUp") {
+                            event.preventDefault();
+                            setSlashMenu((current) => {
+                              if (!current || current.blockId !== block.id) return current;
+                            return {
+                              ...current,
+                              selectedIndex:
+                              current.selectedIndex === 0
+                              ? slashMenuOptions.length - 1
+                              : current.selectedIndex - 1
+                            }
+                           });
+                           return;
+                          }
+
+                          if (event.key === "ArrowDown") {
+                            event.preventDefault();
+                            setSlashMenu((current) => {
+                              if (!current || current.blockId !== block.id) return current;
+                              return {
+                                ...current,
+                                selectedIndex:
+                                current.selectedIndex === slashMenuOptions.length - 1
+                                ? 0
+                                : current.selectedIndex + 1
+                              }
+                            });
+                            return;
+                          }
+
+                          if (event.key === "Enter") {
+                            event.preventDefault();
+
+                            const selectedOption =
+                              slashMenuOptions[slashMenu.selectedIndex];
+
+                            setBlockType(
+                              activeDocument.id,
+                              block.id,
+                              selectedOption.type
+                            );
+                            setSlashMenu(null);
+                            return;
+                          }
+
+                          if (event.key === "Escape") {
+                            event.preventDefault();
+                            setSlashMenu(null);
+                            return;
+                          }
+                        }
+
+                        // Normal block keyboard behavior
                         if (event.key === "Enter") {
                           event.preventDefault();
                           addBlock(activeDocument.id);
                         }
 
+                        // Delete empty block and focus previous one
                         if (event.key === "Backspace" && block.content === "") {
                           event.preventDefault();
 
@@ -126,6 +200,7 @@ export default function EditorPage() {
                           }
                         }
 
+                        // Navigate between blocks when slash menu is closed
                         if (event.key === "ArrowUp") {
                           event.preventDefault();
                           const currentIndex = activeDocument.blocks.findIndex(
@@ -161,28 +236,26 @@ export default function EditorPage() {
                       placeholder="Tapez '/' pour les commandes"
                     />
 
+                    {/* Slash menu for the current block */}
                     {slashMenu?.blockId === block.id && (
                       <div className="mt-2 rounded border bg-white p-2 shadow">
-                        <button
-                          type="button"
-                          className="block w-full p-1 text-left hover:bg-gray-100"
-                          onClick={() => {
-                            setBlockType(activeDocument.id, block.id, "text");
-                            setSlashMenu(null);
-                          }}
-                        >
-                          Texte
-                        </button>
-                        <button
-                          type="button"
-                          className="block w-full p-1 text-left hover:bg-gray-100"
-                          onClick={() => {
-                            setBlockType(activeDocument.id, block.id, "heading");
-                            setSlashMenu(null);
-                          }}
-                        >
-                          Titre
-                        </button>
+                        {slashMenuOptions.map((option, index) => (
+                          <button
+                            key={option.type}
+                            type="button"
+                            className={`block w-full rounded p-1 text-left ${
+                              slashMenu.selectedIndex === index
+                                ? "bg-gray-200"
+                                : "hover:bg-gray-100"
+                            }`}
+                            onClick={() => {
+                              setBlockType(activeDocument.id, block.id, option.type);
+                              setSlashMenu(null);
+                            }}
+                          >
+                            {option.label}
+                          </button>
+                        ))}
                       </div>
                     )}
                   </div>
