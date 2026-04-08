@@ -11,6 +11,7 @@ export default function EditorPage() {
     addBlock,
     updateBlock,
     deleteBlock,
+    setBlockType,
   } = useAppStore();
 
   const activeDocument = documents.find((doc) => doc.id === activeDocumentId);
@@ -24,13 +25,13 @@ export default function EditorPage() {
   useEffect(() => {
     if (!activeDocument || activeDocument.blocks.length === 0) return;
 
-      const lastBlock =
-        activeDocument.blocks[activeDocument.blocks.length - 1];
+    const lastBlock =
+      activeDocument.blocks[activeDocument.blocks.length - 1];
 
-      const lastBlockInputRef = inputRefs.current[lastBlock.id];
+    const lastBlockInputRef = inputRefs.current[lastBlock.id];
 
-      if (lastBlockInputRef) {
-        lastBlockInputRef.focus();
+    if (lastBlockInputRef) {
+      lastBlockInputRef.focus();
     }
   }, [activeDocument?.blocks.length]);
 
@@ -154,7 +155,9 @@ export default function EditorPage() {
                       ref={(el) => {
                         inputRefs.current[block.id] = el;
                       }}
-                      className="w-full border-none bg-transparent py-1 outline-none"
+                      className={`w-full border-none bg-transparent py-1 outline-none ${
+                        block.type === "heading" ? "text-2xl font-bold" : ""
+                      }`}
                       placeholder="Tapez '/' pour les commandes"
                     />
 
@@ -163,12 +166,20 @@ export default function EditorPage() {
                         <button
                           type="button"
                           className="block w-full p-1 text-left hover:bg-gray-100"
+                          onClick={() => {
+                            setBlockType(activeDocument.id, block.id, "text");
+                            setSlashMenu(null);
+                          }}
                         >
                           Texte
                         </button>
                         <button
                           type="button"
                           className="block w-full p-1 text-left hover:bg-gray-100"
+                          onClick={() => {
+                            setBlockType(activeDocument.id, block.id, "heading");
+                            setSlashMenu(null);
+                          }}
                         >
                           Titre
                         </button>
