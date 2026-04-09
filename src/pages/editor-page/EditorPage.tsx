@@ -161,8 +161,9 @@ export default function EditorPage() {
                             setBlockType(
                               activeDocument.id,
                               block.id,
-                              selectedOption.type
+                              selectedOption.type,
                             );
+                            updateBlock(activeDocument.id, block.id, "");
                             setSlashMenu(null);
                             return;
                           }
@@ -250,6 +251,7 @@ export default function EditorPage() {
                             }`}
                             onClick={() => {
                               setBlockType(activeDocument.id, block.id, option.type);
+                              updateBlock(activeDocument.id, block.id, "");
                               setSlashMenu(null);
                             }}
                           >
