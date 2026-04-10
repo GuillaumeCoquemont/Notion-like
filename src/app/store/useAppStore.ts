@@ -1,10 +1,11 @@
 import { create } from "zustand";
 
-export type BlockType = "text" | "heading";
+export type BlockType = "text" | "heading" | "todo";
     export interface Block {
         id: string;
         content: string;
         type: BlockType;
+        checked?: boolean;
     }
 
     export interface DocumentItem {
@@ -24,6 +25,7 @@ export type BlockType = "text" | "heading";
         updateBlock: (docId: string, blockId: string, content: string) => void;
         deleteBlock: (docId: string, blockId: string) => void;
         setBlockType: (docId: string, blockId: string, type: BlockType) => void;
+        toggleBlock: (docId: string, blockId: string) => void;
     }
 
     function createEmptyBlock(): Block {
@@ -109,6 +111,13 @@ export type BlockType = "text" | "heading";
                 set((state) => ({
                     documents: state.documents.map((doc) =>
                         doc.id === docId ? { ...doc, blocks: doc.blocks.map((block) => block.id === blockId ? { ...block, type } : block) } : doc
+                    ),
+                })),
+
+            toggleBlock: (docId, blockId) =>
+                set((state) => ({
+                    documents: state.documents.map((doc) =>
+                        doc.id === docId ? { ...doc, blocks: doc.blocks.map((block) => block.id === blockId ? { ...block, checked: !block.checked } : block) } : doc
                     ),
                 })),
         };

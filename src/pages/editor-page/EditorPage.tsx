@@ -13,6 +13,7 @@ export default function EditorPage() {
     updateBlock,
     deleteBlock,
     setBlockType,
+    toggleBlock,
   } = useAppStore();
 
   // Currently selected document
@@ -31,6 +32,7 @@ export default function EditorPage() {
   const slashMenuOptions = [
     { label: "Texte", type: "text" as const },
     { label: "Titre", type: "heading" as const },
+    { label: "Tâche", type: "todo" as const },
   ];
 
   // Auto-focus the last block when a new one is created
@@ -103,7 +105,16 @@ export default function EditorPage() {
               <div className="mt-6 space-y-2">
                 {activeDocument.blocks.map((block) => (
                   <div key={block.id}>
-                    {/* Block input */}
+                    <div className="flex items-center gap-2">
+                      {block.type === "todo" && (
+                        <input
+                          type="checkbox"
+                          checked={block.checked ?? false}
+                          onChange={() => toggleBlock(activeDocument.id, block.id)}
+                          className="h-4 w-4 cursor-pointer"
+                        />
+                      )}
+                      {/* Block input */}
                     <input
                       type="text"
                       value={block.content}
@@ -233,9 +244,12 @@ export default function EditorPage() {
                       }}
                       className={`w-full border-none bg-transparent py-1 outline-none ${
                         block.type === "heading" ? "text-2xl font-bold" : ""
+                      } ${
+                        block.type === "todo" && block.checked ? "line-through text-neutral-400" : ""
                       }`}
                       placeholder="Tapez '/' pour les commandes"
                     />
+                    </div>
 
                     {/* Slash menu for the current block */}
                     {slashMenu?.blockId === block.id && (
