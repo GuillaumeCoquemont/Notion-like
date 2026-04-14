@@ -1,6 +1,6 @@
 import { create } from "zustand";
 
-export type BlockType = "text" | "heading" | "todo";
+export type BlockType = "text" | "heading" | "todo" | "bullet";
     export interface Block {
         id: string;
         content: string;

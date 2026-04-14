@@ -33,6 +33,7 @@ export default function EditorPage() {
     { label: "Texte", type: "text" as const },
     { label: "Titre", type: "heading" as const },
     { label: "Tâche", type: "todo" as const },
+    { label: "Liste", type: "bullet" as const },
   ];
 
   // Auto-focus the last block when a new one is created
@@ -113,6 +114,9 @@ export default function EditorPage() {
                           onChange={() => toggleBlock(activeDocument.id, block.id)}
                           className="h-4 w-4 cursor-pointer"
                         />
+                      )}
+                      {block.type === "bullet" && (
+                        <span className="text-neutral-400 ml-2">•</span>
                       )}
                       {/* Block input */}
                     <input
