@@ -127,7 +127,7 @@ export default function EditorPage() {
 
                         updateBlock(activeDocument.id, block.id, value);
 
-                        if (value === "/") {
+                        if (value.endsWith("/")) {
                           setSlashMenu({ blockId: block.id, selectedIndex: 0 });
                         } else {
                           setSlashMenu(null);
@@ -178,7 +178,7 @@ export default function EditorPage() {
                               block.id,
                               selectedOption.type,
                             );
-                            updateBlock(activeDocument.id, block.id, "");
+                            updateBlock(activeDocument.id, block.id, block.content.slice(0, -1));
                             setSlashMenu(null);
                             return;
                           }
@@ -269,7 +269,7 @@ export default function EditorPage() {
                             }`}
                             onClick={() => {
                               setBlockType(activeDocument.id, block.id, option.type);
-                              updateBlock(activeDocument.id, block.id, "");
+                              updateBlock(activeDocument.id, block.id, block.content.slice(0, -1));
                               setSlashMenu(null);
                             }}
                           >
